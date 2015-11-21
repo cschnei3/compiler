@@ -1,12 +1,64 @@
-import java.util.HashMap;
 import CPP.Absyn.*;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 public class Env {
 	public HashMap<String,FunType> signature ;
-	public LinkedList<HashMap<String,Type>> contexts ;
+	public LinkedList<HashMap<String,Type>> contexts ; 
 	
-	public  Type lookupVar(String id) { 
+	public Env() {
+		pushScope();
+		init_bifs();
+	}
+	
+	// utility function
+	private LinkedList<Type> one_arg_list(Type t) {
+		LinkedList<Type> retVal = new LinkedList<Type>();
+		retVal.push(t);
+		return retVal;
+	}
+	// built in functions
+	private void init_bifs() {
+		addFun("printInt", new Type_void(), one_arg_list(new Type_int()));
+		addFun("printDouble", new Type_void(), one_arg_list(new Type_double()));
+		addFun("readInt", new Type_int(), null);
+		addFun("readDouble", new Type_double(), null);
+	}
+	
+	public void popScope() {
+		contexts.removeLast();
+	}
+	
+	public void pushScope() {
+		contexts.push(new HashMap<String, Type>());
+	}
+	
+	// the innermost scope, ie, the scope with no scopes inside of it
+	public int getTopScope() {
+		return contexts.size() - 1;
+	}
+	
+    public  boolean addFun(String name, Type retType, LinkedList<Type> arguments){
+    	if (signature.containsKey(name)) {
+    		// function already defined
+    		return false;
+    	}
+    	else {
+    		signature.put(name, new FunType(retType, arguments));
+    	}
+    	
+    	return true;
+    }
+    
+    //need a way of checking call to make sure it has the right number of variables 
+	public  FunType lookupFun(String id) {
+        if (signature.containsKey(id)) {
+            return signature.get(id);
+        }
+		return null;
+	}
+    
+	public Type lookupVar(String id) { 
         for(HashMap<String, Type> scope : contexts){
             if(scope.containsKey(id)){
 		        return scope.get(id);
@@ -15,16 +67,24 @@ public class Env {
         //possiably throw error here
         return null;
     }
-    //need a way of checking call to make sure it has the right number of variables 
-	public  FunType lookupFun(String id) {
-        if(signature.containsKey(id)){
-            return signature.get(id);
-        }
-		return null;
-	}
-    public  boolean addFun(Type name, LinkedList<Type> arguments){
-       return true;
+	
+    public boolean addVar(String id, Type ty) {
+    	HashMap<String, Type> context = contexts.get(getTopScope()); 
+    	
+    	if (context.containsKey(id)) {
+    		return false;
+    	}
+    	
+    	contexts.get(getTopScope()).put(id, ty);
     }
 
-	public  void updateVar (String id, Type ty) {}
+	public  void updateVar (String id, Type ty) {
+		for (int i = 0; i < contexts.size(); i++) {
+			HashMap<String, Type> context = contexts.get(i);
+			if (context.containsKey(id)) {
+				contexts.get(i).put(id, ty);
+				break;
+			}
+		}
+	}
 }
