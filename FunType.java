@@ -11,9 +11,4 @@ public class FunType {
         }
     }
 
-    public static Type findType(String str){
-        if(str == "int"){
-            
-        }
-    }
 }

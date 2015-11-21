@@ -23,7 +23,7 @@ public class Env {
 		return null;
 	}
     public  boolean addFun(Type name, LinkedList<Type> arguments){
-        
+       return true;
     }
 
 	public  void updateVar (String id, Type ty) {}
