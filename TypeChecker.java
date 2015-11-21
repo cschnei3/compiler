@@ -6,7 +6,8 @@ public class TypeChecker {
 	
 	public void typecheck(Program p) {
 		Env env = new Env();
-		p.accept(new CheckProgram(), env);
+		env = p.accept(new CheckProgram(), env);
+		System.out.println(env);
 	}
 	
 //	public static class ProgramImpl extends Program {

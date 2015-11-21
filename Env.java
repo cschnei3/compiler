@@ -11,6 +11,14 @@ public class Env {
 		init_bifs();
 	}
 	
+	public String toString() {
+		String ret = "";
+		for (String s : signature.keySet()) {
+			ret += s + "\n";
+		}
+		return ret;
+	}
+	
 	// utility function
 	private LinkedList<Type> one_arg_list(Type t) {
 		LinkedList<Type> retVal = new LinkedList<Type>();
@@ -39,6 +47,7 @@ public class Env {
 	}
 	
     public  boolean addFun(String name, Type retType, LinkedList<Type> arguments){
+    	//System.out.println("Adding function: " + name);
     	if (signature.containsKey(name)) {
     		// function already defined
     		return false;
