@@ -12,10 +12,14 @@ public class TypeChecker {
 	}
 	
 	public static class ProgramImpl extends Program {
-		public Env accept(Program.Visitor<Env, Env> v, Env env) {
-			//v.visit( this, env );
+        
+        @Override
+		public <R,A> R accept(Program.Visitor<R, A> v, A env) {
+            return null;
+			//return v.visit( this, env );
 		}
-	}
+	
+    }
 	
 	public static enum TypeCode { CInt, CDouble, CString, CBool, CVoid }
 	

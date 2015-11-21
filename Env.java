@@ -6,11 +6,25 @@ public class Env {
 	public HashMap<String,FunType> signature ;
 	public LinkedList<HashMap<String,Type>> contexts ;
 	
-	public static Type lookupVar(String id) { 
-		return new Type_int();
+	public  Type lookupVar(String id) { 
+        for(HashMap<String, Type> scope : contexts){
+            if(scope.containsKey(id)){
+		        return scope.get(id);
+            }
+	    }
+        //possiably throw error here
+        return null;
+    }
+    //need a way of checking call to make sure it has the right number of variables 
+	public  FunType lookupFun(String id) {
+        if(signature.containsKey(id)){
+            return signature.get(id);
+        }
+		return null;
 	}
-	public static FunType lookupFun(String id) {
-		return new FunType();
-	}
-	public static void updateVar (String id, Type ty) {}
+    public  boolean addFun(Type name, LinkedList<Type> arguments){
+        
+    }
+
+	public  void updateVar (String id, Type ty) {}
 }
