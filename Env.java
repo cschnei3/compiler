@@ -6,6 +6,8 @@ public class Env {
 	public HashMap<String,FunType> signature = new HashMap<String, FunType>();
 	public LinkedList<HashMap<String,Type>> contexts = new LinkedList<HashMap<String,Type>>(); 
 	
+    String function;
+
 	public Env() {
 		pushScope();
 		init_bifs();
@@ -33,8 +35,15 @@ public class Env {
 		addFun("readDouble", new Type_double(), null);
 	}
 	
+
 	public void popScope() {
 		contexts.removeLast();
+	}
+	public void pushScope(String funName) {
+		if(funName != null){
+            function = funName;
+        }
+        contexts.push(new HashMap<String, Type>());
 	}
 	
 	public void pushScope() {
