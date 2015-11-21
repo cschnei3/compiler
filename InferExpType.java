@@ -1,6 +1,10 @@
 import CPP.Absyn.*;
 
 public class InferExpType implements Exp.Visitor<Type,Env> {
+		public static TypeCode typeCode (Type ty) {
+			return TypeCode.CInt;
+		}
+		
 		public Type visit(ETimes p, Env env) {
 			Type t1 = p.exp_1.accept(this, env);
 			Type t2 = p.exp_2.accept(this, env);

@@ -3,8 +3,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 public class Env {
-	public HashMap<String,FunType> signature ;
-	public LinkedList<HashMap<String,Type>> contexts ; 
+	public HashMap<String,FunType> signature = new HashMap<String, FunType>();
+	public LinkedList<HashMap<String,Type>> contexts = new LinkedList<HashMap<String,Type>>(); 
 	
 	public Env() {
 		pushScope();
@@ -76,6 +76,7 @@ public class Env {
     	}
     	
     	contexts.get(getTopScope()).put(id, ty);
+    	return true;
     }
 
 	public  void updateVar (String id, Type ty) {

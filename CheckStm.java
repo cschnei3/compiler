@@ -1,9 +1,13 @@
 import CPP.Absyn.*;
 
 public class CheckStm implements Stm.Visitor<Env,Env> {
+	public static Type inferExp(Exp exp, Env env) {
+		return new Type_int();
+	}
+	
 	public Env visit(SDecls p, Env env) {
-		for (String id : p) {
-			env.updateVar(p.id, p.type_) ;
+		for (String id : p.listid_) {
+			env.updateVar(id, p.type_) ;
 		}
 
 		return env ;
