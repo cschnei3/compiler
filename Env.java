@@ -75,7 +75,13 @@ public class Env {
         }
 		return null;
 	}
-    
+ 	public  Type lookupReturnVal() {
+        if (signature.containsKey(function)) {
+            return signature.get(function).retType;
+        }
+		return null;
+	}
+       
 	public Type lookupVar(String id) { 
         for(HashMap<String, Type> scope : contexts){
             if(scope.containsKey(id)){

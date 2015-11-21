@@ -39,16 +39,15 @@ public class CheckStm implements
         return e;
     }
 
-
 	public Env visit(SDecls p, Env env) {
 		for (String id : p.listid_) {
 			env.updateVar(id, p.type_) ;
 		}
-
 		return env ;
 	}
+
 	public Env visit(SExp s, Env env) {
-		inferExp(s.exp_, env) ;
+       s.exp_.accept(this, env);
 		return env ;
 	}
 	
@@ -61,16 +60,32 @@ public class CheckStm implements
 	}
 
     public Env visit(CPP.Absyn.SReturn p, Env env) {
-        
+        if(env.lookupReturnVal() != inferExp(p.exp_) ){
+            throw new TypeException("Return type is wrong");
+        }
         return env;
     }
     public Env visit(CPP.Absyn.SWhile p, Env env) {
+        p.exp_.accept(this, env);
+        env.pushScope();
+        p.stm_.accept(this, env);
+        env.popScope();
     	return env;
     }
     public Env visit(CPP.Absyn.SBlock p, Env env) {
+        env.pushScope();
+        p.stm_.accept(this, env);
+        env.popScope();
     	return env;
     }
     public Env visit(CPP.Absyn.SIfElse p, Env env) {
-    	return env;
+    	p.exp_.accept(this, env);
+        env.pushScope();
+        p.stm_1.accept(this, env);
+        env.popScope();
+    	env.pushScope();
+        p.stm_2.accept(this, env);
+        env.popScope();
+        return env;
     }
 }
