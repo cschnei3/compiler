@@ -1,0 +1,17 @@
+INDEX VERSION 1.126+/chalmers/users/anick/pl/lab2/java/.metadata/.plugins/org.eclipse.jdt.core
+2945802195.index
+4054271660.index
+2424101467.index
+141648337.index
+1391760057.index
+2448427567.index
+764970482.index
+1983714939.index
+1050415262.index
+3783826099.index
+2960647781.index
+2546113701.index
+81134137.index
+1866736012.index
+3222463494.index
+1384854412.index

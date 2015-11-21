@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
+		<item value="true" key="isRegEx"/>
+		<item value="infer" key="selection"/>
+		<item value="true" key="casesensitive"/>
+		<item value="false" key="incremental"/>
+		<item value="true" key="wrap"/>
+		<item value="true" key="wholeword"/>
+		<list key="findhistory">
+			<item value="infer"/>
+			<item value="infer\"/>
+			<item value=";"/>
+			<item value="A arg"/>
+			<item value="R"/>
+			<item value="CPP.Absyn."/>
+			<item value="CPP.Absyn.*"/>
+			<item value="typeCode"/>
+		</list>
+		<list key="replacehistory">
+			<item value="{ }"/>
+			<item value="Env env"/>
+			<item value="Type"/>
+			<item value=""/>
+			<item value="env"/>
+			<item value="Env"/>
+			<item value="TypeCode"/>
+			<item value="Type_int"/>
+		</list>
+	</section>
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
+		<item value="310" key="DIALOG_WIDTH"/>
+		<item value="1|Sans|10.0|0|GTK|1|" key="DIALOG_FONT_NAME"/>
+		<item value="420" key="DIALOG_HEIGHT"/>
+		<item value="687" key="DIALOG_X_ORIGIN"/>
+		<item value="222" key="DIALOG_Y_ORIGIN"/>
+	</section>
+</section>
