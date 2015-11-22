@@ -7,7 +7,7 @@ public class CheckStm implements
                                 Arg.Visitor<Env, Env>
 {
 	public static Type inferExp(Exp exp, Env env) {
-		return new Type_int();
+		return exp.accept(new InferExpType(), env);
 	}
 	public Env visit(PDefs p, Env env) {
 		
@@ -21,6 +21,7 @@ public class CheckStm implements
 		String id = p.id_;
 		Type retType = p.type_;
 		
+		env.pushScope(id);
 		
 		for(Arg a : p.listarg_){
             a.accept(this, env);
@@ -29,10 +30,12 @@ public class CheckStm implements
             s.accept(this, env);	    
         }
 		
+		env.popScope();
+		
 		return env;
 	}
     
-    public Env visit(CPP.Absyn.ADecl p, Env e){
+    public Env visit(CPP.Absyn.ADecl p, Env e) {
         e.updateVar(p.id_, p.type_);
         return e;
     }
@@ -49,8 +52,14 @@ public class CheckStm implements
 		return env ;
 	}
 	
+	public int tc(Type t) {
+		return TypeCode.typeCode(t);
+	}
+	
     public Env visit(CPP.Absyn.SInit p, Env env) {
-        if(inferExp(p.exp_, env) != p.type_){
+    	Type expType = inferExp(p.exp_, env);
+    	Type varType = p.type_;
+        if(tc(expType) != tc(varType)){
             throw new TypeException("Assignment must match initilization");
         }
 		env.updateVar(p.id_, p.type_);
@@ -58,13 +67,19 @@ public class CheckStm implements
 	}
 
     public Env visit(CPP.Absyn.SReturn p, Env env) {
-        if (env.lookupReturnVal() != inferExp(p.exp_, env) ){
+    	Type retType = env.lookupReturnVal();
+    	Type expType = inferExp(p.exp_, env);
+    	
+    	//System.out.println("return expresion type: " + TypeCode.printTC(expType));
+    	
+        if (tc(retType) != tc(expType)){
             throw new TypeException("Return type is wrong");
         }
         return env;
     }
     public Env visit(CPP.Absyn.SWhile p, Env env) {
-        p.exp_.accept(new InferExpType(), env);
+    	checkBool(p.exp_, env);
+    	
         env.pushScope();
         p.stm_.accept(this, env);
         env.popScope();
@@ -79,9 +94,10 @@ public class CheckStm implements
         env.popScope();
     	return env;
     }
+    
     public Env visit(CPP.Absyn.SIfElse p, Env env) {
     	// condition
-    	p.exp_.accept(new InferExpType(), env);
+    	checkBool(p.exp_, env);
     	// if
         env.pushScope();
         p.stm_1.accept(this, env);
@@ -91,5 +107,12 @@ public class CheckStm implements
         p.stm_2.accept(this, env);
         env.popScope();
         return env;
+    }    
+    
+    public void checkBool(Exp exp, Env env) {
+       	Type condType = inferExp(exp, env);
+    	if (tc(condType) != TypeCode.CBool) {
+    		throw new TypeException("Condition expression must return a boolean");
+    	}
     }
 }

@@ -37,22 +37,32 @@ public class Env {
 	
 
 	public void popScope() {
+		HashMap<String, Type> topContext = getTopScope();
+		
+		for(String key : topContext.keySet()) {
+			//System.err.println("scope id: " + key);
+		}
+		
 		contexts.removeLast();
+		//System.err.println("popping scope: contexts size is now" + contexts.size());
 	}
 	public void pushScope(String funName) {
+		
 		if(funName != null){
             function = funName;
         }
-        contexts.push(new HashMap<String, Type>());
+		
+        pushScope();
 	}
 	
 	public void pushScope() {
-		contexts.push(new HashMap<String, Type>());
+		contexts.addLast(new HashMap<String, Type>());
+		//System.err.println("pushing scope, contexts size " + contexts.size());
 	}
 	
 	// the innermost scope, ie, the scope with no scopes inside of it
-	public int getTopScope() {
-		return contexts.size() - 1;
+	public HashMap<String, Type> getTopScope() {
+		return contexts.get(contexts.size() - 1);
 	}
 	
     public  boolean addFun(String name, Type retType, LinkedList<Type> arguments){
@@ -109,14 +119,15 @@ public class Env {
 
     // can only ever modify the innermost ("top") scope
 	public  void updateVar (String id, Type ty) {
-		HashMap<String, Type> context = contexts.get(getTopScope());
+		//System.out.println("Updating id " + id + " of type " + TypeCode.printTC(ty));
+		HashMap<String, Type> context = getTopScope();
 		
 		if (context.containsKey(id)) {
 			throw new TypeException("Variable: " + id + " already defined");
 		}
 		
-		contexts.pop();
+		//contexts.pop();
 		context.put(id, ty);
-		contexts.push(context);
+		//contexts.push(context);
 	}
 }

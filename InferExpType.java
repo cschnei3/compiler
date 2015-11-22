@@ -9,6 +9,11 @@ public class InferExpType implements Exp.Visitor<Type,Env> {
 		public Type arithmetic(Exp e1, Exp e2, Env env, String errMsg) {
 			Type t1 = e1.accept(this, env);
 			Type t2 = e2.accept(this, env);
+			
+//			System.out.println(PrettyPrinter.print(e1));
+//			System.out.println(PrettyPrinter.print(e2));
+//			System.out.println("t1 " + TypeCode.printTC(t1) + " t2 " + TypeCode.printTC(t2));
+			
 			if (TypeCode.typeCode(t1) == TypeCode.CInt &&
 				TypeCode.typeCode(t2) == TypeCode.CInt) {
 				return new Type_int();
@@ -25,13 +30,14 @@ public class InferExpType implements Exp.Visitor<Type,Env> {
 		public Type comparison(Exp e1, Exp e2, Env env, String errMsg) {
 			Type t1 = e1.accept(this, env);
 			Type t2 = e2.accept(this, env);
+			
 			if (TypeCode.typeCode(t1) == TypeCode.CInt &&
 				TypeCode.typeCode(t2) == TypeCode.CInt) {
-				return new Type_int();
+				return new Type_bool();
 			}
 			else if (TypeCode.typeCode(t1) == TypeCode.CDouble &&
 					 TypeCode.typeCode(t2) == TypeCode.CDouble) {
-				return new Type_double();
+				return new Type_bool();
 			}
 			else if (TypeCode.typeCode(t1) == TypeCode.CBool &&
 					TypeCode.typeCode(t2) == TypeCode.CBool) {
@@ -89,7 +95,7 @@ public class InferExpType implements Exp.Visitor<Type,Env> {
 	    	Type t = env.lookupVar(id);
 	    	int tc = TypeCode.typeCode(t);
 	    	
-	    	if (tc != TypeCode.CInt || tc != TypeCode.CDouble) {
+	    	if (tc != TypeCode.CInt && tc != TypeCode.CDouble) {
 	    		throw new TypeException("Type must be int or double for increment/decrement on id: " + id);
 	    	}
 	    	
@@ -145,7 +151,10 @@ public class InferExpType implements Exp.Visitor<Type,Env> {
 	    	Type expType = p.exp_.accept(this, env);
 	    	Type idType = env.lookupVar(p.id_);
 	    	
-	    	if (expType != idType) {
+	    	if (TypeCode.typeCode(expType) != TypeCode.typeCode(idType)) {
+//	    		System.out.println("EAss error: id type code: " + 
+//	    							TypeCode.printTC(idType) + " exp type code: " 
+//	    							+ TypeCode.printTC(expType));
 	    		throw new TypeException("Expression must match identifier type");
 	    	}
 	    	   	
