@@ -1,10 +1,10 @@
 import CPP.Absyn.*;
 
 public class CheckStm implements 
-                                Stm.Visitor<Env,Env>, 
-                                Program.Visitor<Env, Env>, 
-                                Def.Visitor<Env, Env>, 
-                                Arg.Visitor<Env, Env>
+	    Stm.Visitor<Env,Env>, 
+	    Program.Visitor<Env, Env>, 
+	    Def.Visitor<Env, Env>, 
+	    Arg.Visitor<Env, Env>
 {
 	public static Type inferExp(Exp exp, Env env) {
 		return exp.accept(new InferExpType(), env);

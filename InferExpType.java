@@ -82,13 +82,14 @@ public class InferExpType implements Exp.Visitor<Type,Env> {
 	    }
 	    public Type visit(EApp p, Env env) {
 	    	// visit each expression in the call
+	    	Type t = env.lookupFun(p.id_).retType;
 	    	LinkedList<Type> argList = new LinkedList<Type>();
 	    	for (Exp e : p.listexp_) {
 	    		argList.add(e.accept(this, env));
 	    	}
 	    	env.checkFunArgs(p.id_, argList);
 	    	
-	    	return env.lookupFun(p.id_).retType;
+	    	return t;
 	    }
 	    
 	    public Type intDoubleExp(String id, Env env) {

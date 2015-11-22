@@ -6,6 +6,7 @@ public class Env {
 	public HashMap<String,FunType> signature = new HashMap<String, FunType>();
 	public LinkedList<HashMap<String,Type>> contexts = new LinkedList<HashMap<String,Type>>(); 
 	
+	
     String function;
 
 	public Env() {
