@@ -6,7 +6,7 @@ public class FunType {
 	public Type retType ;
     public FunType(Type  _retType, LinkedList<Type> _args) {
     	if (_args == null) {
-    		args = null;
+    		args = new LinkedList<Type>();
     	}
     	else {
     		args = (LinkedList<Type>)_args.clone();	

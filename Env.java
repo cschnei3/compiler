@@ -126,8 +126,6 @@ public class Env {
 			throw new TypeException("Variable: " + id + " already defined");
 		}
 		
-		//contexts.pop();
 		context.put(id, ty);
-		//contexts.push(context);
 	}
 }
