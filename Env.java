@@ -56,7 +56,6 @@ public class Env {
 	}
 	
     public  boolean addFun(String name, Type retType, LinkedList<Type> arguments){
-    	//System.out.println("Adding function: " + name);
     	if (signature.containsKey(name)) {
     		// function already defined
     		return false;
@@ -68,28 +67,38 @@ public class Env {
     	return true;
     }
     
-    //need a way of checking call to make sure it has the right number of variables 
+    public void checkFunArgs(String id, LinkedList<Type> callArgs) throws TypeError {
+    	LinkedList<Type> funArgs = lookupFun(id).args;
+    	String errMsg = "Function call argument mismatch";
+    	
+    	if (funArgs.size() != callArgs.size()) throw new TypeError(errMsg);
+    	
+    	for(int i = 0; i < funArgs.size(); i++) {
+    		if (typeCode(funArgs[i]) != typeCode(callArgs[i])) throw new TypeError(errMsg);
+    	}
+    }
+    
 	public  FunType lookupFun(String id) {
         if (signature.containsKey(id)) {
             return signature.get(id);
         }
-		return null;
+        else {
+        	throw new TypeError("Function: " + id + " not defined");
+        }
 	}
  	public  Type lookupReturnVal() {
-        if (signature.containsKey(function)) {
-            return signature.get(function).retType;
-        }
-		return null;
+ 		return lookupFun(function).retType;
 	}
        
 	public Type lookupVar(String id) { 
-        for(HashMap<String, Type> scope : contexts){
+		// iterate backwards to find the var in the innermost scope
+		for (int i = contexts.size() - 1; i >= 0; i--) {
+			HashMap<String, Type> scope = contexts[i];
             if(scope.containsKey(id)){
 		        return scope.get(id);
             }
 	    }
-        //possiably throw error here
-        return null;
+        throw new TypeError("Variable: " + id + " not defined");
     }
 	
     public boolean addVar(String id, Type ty) {
