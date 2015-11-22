@@ -67,14 +67,20 @@ public class Env {
     	return true;
     }
     
-    public void checkFunArgs(String id, LinkedList<Type> callArgs) throws TypeError {
+    public void checkFunArgs(String id, LinkedList<Type> callArgs) throws TypeException {
     	LinkedList<Type> funArgs = lookupFun(id).args;
     	String errMsg = "Function call argument mismatch";
     	
-    	if (funArgs.size() != callArgs.size()) throw new TypeError(errMsg);
+    	if (funArgs.size() != callArgs.size()) throw new TypeException(errMsg);
     	
     	for(int i = 0; i < funArgs.size(); i++) {
-    		if (typeCode(funArgs[i]) != typeCode(callArgs[i])) throw new TypeError(errMsg);
+    		Type funType = funArgs.get(i);
+    		Type callType = callArgs.get(i);
+    		int funTc = TypeCode.typeCode(funType);
+    		int callTc = TypeCode.typeCode(callType);
+    		if (funTc != callTc) {
+    			throw new TypeException(errMsg);
+    		}
     	}
     }
     
@@ -83,7 +89,7 @@ public class Env {
             return signature.get(id);
         }
         else {
-        	throw new TypeError("Function: " + id + " not defined");
+        	throw new TypeException("Function: " + id + " not defined");
         }
 	}
  	public  Type lookupReturnVal() {
@@ -93,32 +99,24 @@ public class Env {
 	public Type lookupVar(String id) { 
 		// iterate backwards to find the var in the innermost scope
 		for (int i = contexts.size() - 1; i >= 0; i--) {
-			HashMap<String, Type> scope = contexts[i];
+			HashMap<String, Type> scope = contexts.get(i);
             if(scope.containsKey(id)){
 		        return scope.get(id);
             }
 	    }
-        throw new TypeError("Variable: " + id + " not defined");
-    }
-	
-    public boolean addVar(String id, Type ty) {
-    	HashMap<String, Type> context = contexts.get(getTopScope()); 
-    	
-    	if (context.containsKey(id)) {
-    		return false;
-    	}
-    	
-    	contexts.get(getTopScope()).put(id, ty);
-    	return true;
+        throw new TypeException("Variable: " + id + " not defined");
     }
 
+    // can only ever modify the innermost ("top") scope
 	public  void updateVar (String id, Type ty) {
-		for (int i = 0; i < contexts.size(); i++) {
-			HashMap<String, Type> context = contexts.get(i);
-			if (context.containsKey(id)) {
-				contexts.get(i).put(id, ty);
-				break;
-			}
+		HashMap<String, Type> context = contexts.get(getTopScope());
+		
+		if (context.containsKey(id)) {
+			throw new TypeException("Variable: " + id + " already defined");
 		}
+		
+		contexts.pop();
+		context.put(id, ty);
+		contexts.push(context);
 	}
 }

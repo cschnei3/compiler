@@ -33,7 +33,7 @@ public class CheckStm implements
 	}
     
     public Env visit(CPP.Absyn.ADecl p, Env e){
-        e.addVar(p.id_, p.type_);
+        e.updateVar(p.id_, p.type_);
         return e;
     }
 

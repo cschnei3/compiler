@@ -1,29 +1,31 @@
-public class TypeCode implements Type.Visitor<TypeCode, Env> {
+import CPP.Absyn.*;
+
+public class TypeCode implements Type.Visitor<Integer, Env> {
 	// pseudo enum
-	public int 
-			CInt = 0, 
-			CDouble = 1, 
-			CString = 2, 
-			CBool = 3, 
-			CVoid = 4;
+	public static final Integer 
+			CInt = Integer.valueOf(0), 
+			CDouble = Integer.valueOf(1), 
+			CString = Integer.valueOf(2), 
+			CBool = Integer.valueOf(3), 
+			CVoid = Integer.valueOf(4);
 	
-	public static TypeCode typeCode (Type ty) {
+	public static int typeCode (Type ty) {
 		return CInt;
 	}
 	
-	public TypeCode visit(Type_bool p, Env env) {
+	public Integer visit(Type_bool p, Env env) {
 		return CBool;
 	}
 	
-	public TypeCode visit(Type_int p, Env env) {
+	public Integer visit(Type_int p, Env env) {
 		return CInt;
 	}
 	
-	public TypeCode visit(Type_double p, Env env) {
+	public Integer visit(Type_double p, Env env) {
 		return CDouble;
 	}
 	
-	public TypeCode visit(Type_void p, Env env) {
+	public Integer visit(Type_void p, Env env) {
 		return CVoid;
 	}
 }

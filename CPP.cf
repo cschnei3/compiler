@@ -26,11 +26,11 @@ EId.     Exp15  ::= Id ;
 
 EApp.    Exp15  ::= Id "(" [Exp] ")" ;
 
-EPostIncr.  Exp14  ::= Exp15 "++" ;
-EPostDecr.  Exp14  ::= Exp15 "--" ;
+EPostIncr.  Exp14  ::= Id "++" ;
+EPostDecr.  Exp14  ::= Id "--" ;
 
-EPreIncr.   Exp13  ::= "++" Exp14 ;
-EPreDecr.   Exp13  ::= "--" Exp14 ;
+EPreIncr.   Exp13  ::= "++" Id;
+EPreDecr.   Exp13  ::= "--" Id;
 
 ETimes.  Exp12  ::= Exp12 "*"  Exp13 ;
 EDiv.    Exp12  ::= Exp12 "/"  Exp13 ;
@@ -44,7 +44,7 @@ EEq.     Exp8   ::= Exp9  "==" Exp9 ;
 ENEq.    Exp8   ::= Exp9  "!=" Exp9 ;
 EAnd.    Exp4   ::= Exp4  "&&" Exp5 ;
 EOr.     Exp3   ::= Exp3  "||" Exp4 ;
-EAss.    Exp2   ::= Exp3  "="  Exp2 ;
+EAss.    Exp2   ::= Id "="  Exp2 ;
 
 coercions Exp 15 ;
 
