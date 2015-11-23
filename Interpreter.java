@@ -7,21 +7,29 @@ public class Interpreter implements
 	Arg.Visitor<String, ValueTable> {
 
     public void interpret(Program p) {
-		ValueTable env = new ValueTable();
-		env = p.accept(this, env);
+		ValueTable vt = new ValueTable();
 		
-		//p.accept(new InterpretStm(), env);
+		vt = p.accept(this, vt);
 		
+		IntrFun main = vt.getFun("main");
+		if (main == null) {
+			System.err.println("no main found");
+			return;
+		}
+		
+		for (Stm s : main.stms) {
+			vt = s.accept(new InterpretStm(), vt);
+		}		
     }
 
-	public ValueTable visit(PDefs p, ValueTable env) {
+	public ValueTable visit(PDefs p, ValueTable vt) {
 		for (Def x : p.listdef_) {
-			x.accept(this, env);
+			x.accept(this, vt);
 		}
-		return env;
+		return vt;
 	}
 	
-	public ValueTable visit(CPP.Absyn.DFun p, ValueTable env) {
+	public ValueTable visit(CPP.Absyn.DFun p, ValueTable vt) {
 		String id = p.id_;
 		Type retType = p.type_;
 		
@@ -29,19 +37,19 @@ public class Interpreter implements
 		LinkedList<Stm> body = new LinkedList<Stm>();
 		
 		for (Arg a: p.listarg_) {
-			names.add(a.accept(this, env));
+			names.add(a.accept(this, vt));
 		}
 		
 		for (Stm s : p.liststm_) {
 			body.add(s);
 		}
 		
-		env.addFun(id, names, body);
+		vt.addFun(id, names, body);
 		
-		return env;
+		return vt;
 	}
 	
-	public String visit(CPP.Absyn.ADecl p, ValueTable env) {
+	public String visit(CPP.Absyn.ADecl p, ValueTable vt) {
 		return p.id_;
 	}
 }

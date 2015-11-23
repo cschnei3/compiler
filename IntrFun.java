@@ -1,3 +1,6 @@
+import CPP.Absyn.*;
+import java.util.LinkedList;
+
 public class IntrFun {
 	LinkedList<String> argNames;
 	LinkedList<Stm> stms;

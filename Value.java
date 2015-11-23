@@ -1,8 +1,10 @@
+import CPP.Absyn.*;
+
 public class Value<R> {
 	R val;
 	Type type;
 	
-	public Value (R v, Type t) {
+	public Value (Type t, R v) {
 		val = v;
 		type = t;
 	}
@@ -11,8 +13,10 @@ public class Value<R> {
 	public R getValue() {
 		return val;
 	}
-	public boolean setValue(R r) {
+	
+	public void setValue(R r) {
 		val = r;
+		
 	}
 	public Type getType() {
 		return type;
