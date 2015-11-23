@@ -12,14 +12,15 @@ public class Interpreter implements
 		vt = p.accept(this, vt);
 		
 		IntrFun main = vt.getFun("main");
+		
 		if (main == null) {
 			System.err.println("no main found");
 			return;
 		}
 		
 		for (Stm s : main.stms) {
-			vt = s.accept(new InterpretStm(), vt);
-		}		
+			s.accept(new InterpretStm(), vt);
+		}
     }
 
 	public ValueTable visit(PDefs p, ValueTable vt) {

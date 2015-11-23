@@ -1,4 +1,5 @@
 import CPP.Absyn.*;
+import CPP.PrettyPrinter;
 
 public class InterpretStm implements Stm.Visitor<Value,ValueTable> { 
 //    Def.Visitor<ValueTable, ValueTable>, 
@@ -22,7 +23,10 @@ public class InterpretStm implements Stm.Visitor<Value,ValueTable> {
 	//}
 	
 	public Value visit(SDecls p, ValueTable vt) {
-		// ignore because we infer types and type checking works
+		for (String id : p.listid_) {
+			vt.addVar(id, new Value(new Type_void(), null));	
+		}
+		
 		return make_void();
 	}
 	
@@ -33,20 +37,21 @@ public class InterpretStm implements Stm.Visitor<Value,ValueTable> {
 	
 	public Value visit(CPP.Absyn.SInit p, ValueTable vt) {
 		Value v = interpretExp(p.exp_, vt);
-		vt.updateVar(p.id_, p.type_, v);
+		System.out.println(v);
+		vt.addVar(p.id_, v);
 		return make_void();
 	}
 	
 	public Value visit(CPP.Absyn.SReturn p, ValueTable vt) {
-		// TODO: Do this
 		Value v = interpretExp(p.exp_, vt);
-		
-		//vt.updateVar()
+		System.out.println("return: " + v);
 		return v;
 	}
 	public Value visit(CPP.Absyn.SWhile p, ValueTable vt) {
-		while ((boolean)interpretExp(p.exp_, vt).getValue()) {
+		Value v = interpretExp(p.exp_, vt);
+		while ((boolean) v.getValue()) {
 			doStm(p.stm_, vt);
+			v = interpretExp(p.exp_, vt);
 		}
 		return make_void();
 	}

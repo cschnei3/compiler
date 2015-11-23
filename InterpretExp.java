@@ -1,5 +1,6 @@
 import java.util.Scanner;
 import CPP.Absyn.*;
+import CPP.PrettyPrinter;
 
 public class InterpretExp implements Exp.Visitor<Value, ValueTable> {
 	public Value make_void() {
@@ -12,12 +13,12 @@ public class InterpretExp implements Exp.Visitor<Value, ValueTable> {
     	
     	if (id.equals("printInt")) {
     		Value v = args.get(0).accept(this, vt);
-    		
-    		if (isInt(v)) 
+    		if (isInt(v)) {    			
     			System.out.println((int) v.getValue());
-    		
-    		if (isBool(v)) 
+    		}
+    		if (isBool(v)) {
     			System.out.println((boolean) v.getValue());
+    		}
     		
     		return new Value(new Type_void(), null);
     	}
@@ -40,16 +41,20 @@ public class InterpretExp implements Exp.Visitor<Value, ValueTable> {
     	for (int i = 0; i < args.size(); i++) {
     		Exp e = args.get(i);
     		String name = fun.argNames.get(i);
-    		vt.updateVar(name, e.accept(this, vt));
+    		Value argVal = e.accept(this, vt);
+    		System.err.println("setting arg " + name + " to " + argVal);
+    		vt.addVar(name, argVal);
     	}
+    	System.err.println("Calling fun " + id + " with " + args.size() + " args");
     	Value retVal = make_void();
     	for (Stm s : fun.stms) {
     		retVal = s.accept(new InterpretStm(), vt);
-    		if (retVal != null) {
+    		if (retVal.getValue() != null) {
     			break;
     		}
     	}
     	vt.popScope();
+    	System.err.println("function " + id + " returning " + retVal.getValue());
 		return retVal;
     }
 	
@@ -109,7 +114,8 @@ public class InterpretExp implements Exp.Visitor<Value, ValueTable> {
     	return new Value(new Type_bool(), false);
     }
     public Value visit(EInt p, ValueTable vt) {
-    	return new Value(new Type_int(), p.integer_);
+    	Value v = new Value(new Type_int(), p.integer_);
+    	return v;
     }
     public Value visit(EDouble p, ValueTable vt){
     	return new Value(new Type_double(), p.double_);
@@ -169,10 +175,10 @@ public class InterpretExp implements Exp.Visitor<Value, ValueTable> {
 			return new Value(new Type_bool(), val_a < val_b);
 		}
 		else if (isInt(a)) {
-			return new Value(new Type_int(), (int) a.getValue() < (int) b.getValue());
+			return new Value(new Type_bool(), (int) a.getValue() < (int) b.getValue());
 		}
 		else if (isDouble(a)) {
-			return new Value(new Type_double(), (double) a.getValue() < (double) b.getValue());
+			return new Value(new Type_bool(), (double) a.getValue() < (double) b.getValue());
 		}
 		else {
 			throw new Error("type checker broken");
@@ -181,17 +187,19 @@ public class InterpretExp implements Exp.Visitor<Value, ValueTable> {
     public Value visit(EGt p, ValueTable vt) {
     	Value a = p.exp_1.accept(this, vt);
 		Value b = p.exp_2.accept(this, vt);
-		
+
 		if (isBool(a)) {
 			int val_a = (boolean) a.getValue() ? 1 : 0;
 			int val_b = (boolean) b.getValue() ? 1 : 0;
 			return new Value(new Type_bool(), val_a > val_b);
 		}
 		else if (isInt(a)) {
-			return new Value(new Type_int(), (int) a.getValue() > (int) b.getValue());
+			System.err.println("comparing  " + a + " and " + b);
+			boolean val = ((int) a.getValue()) > ((int) b.getValue());
+			return new Value(new Type_bool(), val);
 		}
 		else if (isDouble(a)) {
-			return new Value(new Type_double(), (double) a.getValue() > (double) b.getValue());
+			return new Value(new Type_bool(), (double) a.getValue() > (double) b.getValue());
 		}
 		else {
 			throw new Error("type checker broken");
@@ -207,10 +215,10 @@ public class InterpretExp implements Exp.Visitor<Value, ValueTable> {
 			return new Value(new Type_bool(), val_a <= val_b);
 		}
 		else if (isInt(a)) {
-			return new Value(new Type_int(), (int) a.getValue() <= (int) b.getValue());
+			return new Value(new Type_bool(), (int) a.getValue() <= (int) b.getValue());
 		}
 		else if (isDouble(a)) {
-			return new Value(new Type_double(), (double) a.getValue() <= (double) b.getValue());
+			return new Value(new Type_bool(), (double) a.getValue() <= (double) b.getValue());
 		}
 		else {
 			throw new Error("type checker broken");
@@ -226,10 +234,10 @@ public class InterpretExp implements Exp.Visitor<Value, ValueTable> {
 			return new Value(new Type_bool(), val_a >= val_b);
 		}
 		else if (isInt(a)) {
-			return new Value(new Type_int(), (int) a.getValue() >= (int) b.getValue());
+			return new Value(new Type_bool(), (int) a.getValue() >= (int) b.getValue());
 		}
 		else if (isDouble(a)) {
-			return new Value(new Type_double(), (double) a.getValue() >= (double) b.getValue());
+			return new Value(new Type_bool(), (double) a.getValue() >= (double) b.getValue());
 		}
 		else {
 			throw new Error("type checker broken");
@@ -245,10 +253,10 @@ public class InterpretExp implements Exp.Visitor<Value, ValueTable> {
 			return new Value(new Type_bool(), val_a == val_b);
 		}
 		else if (isInt(a)) {
-			return new Value(new Type_int(), (int) a.getValue() == (int) b.getValue());
+			return new Value(new Type_bool(), (int) a.getValue() == (int) b.getValue());
 		}
 		else if (isDouble(a)) {
-			return new Value(new Type_double(), (double) a.getValue() == (double) b.getValue());
+			return new Value(new Type_bool(), (double) a.getValue() == (double) b.getValue());
 		}
 		else {
 			throw new Error("type checker broken");
@@ -264,10 +272,10 @@ public class InterpretExp implements Exp.Visitor<Value, ValueTable> {
 			return new Value(new Type_bool(), val_a != val_b);
 		}
 		else if (isInt(a)) {
-			return new Value(new Type_int(), (int) a.getValue() != (int) b.getValue());
+			return new Value(new Type_bool(), (int) a.getValue() != (int) b.getValue());
 		}
 		else if (isDouble(a)) {
-			return new Value(new Type_double(), (double) a.getValue() != (double) b.getValue());
+			return new Value(new Type_bool(), (double) a.getValue() != (double) b.getValue());
 		}
 		else {
 			throw new Error("type checker broken");
@@ -297,7 +305,7 @@ public class InterpretExp implements Exp.Visitor<Value, ValueTable> {
     }
     public Value visit(EAss p, ValueTable vt) {
     	Value a = p.exp_.accept(this, vt);
-    	vt.updateVar(p.id_, a.type, a);
+    	vt.updateVar(p.id_, a);
     	return a;
     }
 }

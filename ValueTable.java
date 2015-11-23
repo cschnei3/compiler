@@ -10,6 +10,7 @@ public class ValueTable {
 	public String function;
 	
 	public ValueTable() {
+		pushScope();
 		
 	}
 	
@@ -25,14 +26,23 @@ public class ValueTable {
 		return values.getLast();
 	}
 	
-	public void updateVar(String id, Value v) {
+	public void addVar(String id, Value v) {
 		HashMap<String, Value> context = getTopScope();
 		context.put(id, v);
 	}
 	
+	public void updateVar(String id, Value v) {
+		for(int i = values.size() - 1; i >= 0; i--) {
+			HashMap<String, Value> context = values.get(i);
+			
+			if (context.containsKey(id)) {
+				context.put(id, v);
+				return;
+			}
+		}
+	}
+	
 	public <T> void updateVar (String id, Type ty, T val) {
-		//System.out.println("Updating id " + id + " of type " + TypeCode.printTC(ty));
-		HashMap<String, Value> context = getTopScope();
 		updateVar(id, new Value<T>(ty, val));
 	}
 	

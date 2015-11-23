@@ -11,6 +11,7 @@ public class Value<R> {
 	
 	
 	public R getValue() {
+		System.err.println("returning val " + val);
 		return val;
 	}
 	
@@ -20,5 +21,8 @@ public class Value<R> {
 	}
 	public Type getType() {
 		return type;
+	}
+	public String toString() {
+		return "type " + type + " value " + val;
 	}
 }
