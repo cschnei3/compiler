@@ -3,7 +3,7 @@
 int main () 
 {
   int sum = 0 ;
-  int num = 0 ;
+  int num = 10 ;
   int x ;
   printInt(77);
   x = readInt();
@@ -14,6 +14,8 @@ int main ()
     printInt(701);
     x = readInt();
   }
+ 
+  printInt(x);
   printInt(sum/num) ;
 
 }

@@ -1,6 +1,6 @@
 import java.util.HashMap;
 import java.util.LinkedList;
-
+import java.util.Scanner;
 import CPP.Absyn.*;
 
 public class ValueTable {
@@ -11,6 +11,8 @@ public class ValueTable {
 	
 	boolean returning = false;
 	
+    Scanner scan = new Scanner(System.in);
+
 	public ValueTable() {
 		pushScope();
 	}

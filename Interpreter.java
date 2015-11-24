@@ -21,6 +21,7 @@ public class Interpreter implements
 		for (Stm s : main.stms) {
 			s.accept(new InterpretStm(), vt);
 		}
+        vt.scan.close();
     }
 
 	public ValueTable visit(PDefs p, ValueTable vt) {
