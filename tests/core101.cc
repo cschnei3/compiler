@@ -1,6 +1,7 @@
 bool foo(int x) {
     if (x == 0) {
-	return false;
+        printInt(7);
+	    return false;
     } else {}
 
     bool b = true;

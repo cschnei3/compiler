@@ -5,9 +5,9 @@ int
 main() {
     int i = fac(10);
 	printInt(i);
-//	printInt(rfac(10));
-//	printInt(mfac(10));
-//        printInt(ifac(10));
+	printInt(rfac(10));
+	printInt(mfac(10));
+        printInt(ifac(10));
         double r ; // just to test blocks 
 	{
 	  int n = 10;

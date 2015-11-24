@@ -11,7 +11,7 @@ public class Value<R> {
 	
 	
 	public R getValue() {
-		System.err.println("returning val " + val);
+	//	System.err.println("returning val " + val);
 		return val;
 	}
 	

@@ -68,7 +68,7 @@ public class Env {
 	
     public  boolean addFun(String name, Type retType, LinkedList<Type> arguments){
     	if (name.equals("main")) {
-    		System.err.println("found main");
+    		//System.err.println("found main");
     		if (arguments.size() > 0) {
     			throw new TypeException("Main function cannot take args");
     		}

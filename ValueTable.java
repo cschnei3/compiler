@@ -7,19 +7,31 @@ public class ValueTable {
 	public LinkedList<HashMap<String, Value>> values = new LinkedList<HashMap<String, Value>>();
 	public HashMap<String, IntrFun> funs = new HashMap<String, IntrFun>();
 	
-	public String function;
+	public LinkedList<Boolean> scopeManager = new LinkedList<Boolean>();
+	
+	boolean returning = false;
 	
 	public ValueTable() {
 		pushScope();
-		
 	}
 	
 	public void pushScope() {
+		scopeManager.addLast(false);
+		values.addLast(new HashMap<String, Value>());
+	}
+	// push function scope
+	public void pushFunScope() {
+		scopeManager.addLast(true);
 		values.addLast(new HashMap<String, Value>());
 	}
 	
-	public void popScope() {
+	public void popFunScope() {
+		while (!popScope()) { ; }
+	}
+	
+	public boolean popScope() {
 		values.removeLast();
+		return scopeManager.removeLast();
 	}
 	
 	public HashMap<String, Value> getTopScope() {

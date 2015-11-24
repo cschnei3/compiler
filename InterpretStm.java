@@ -31,55 +31,56 @@ public class InterpretStm implements Stm.Visitor<Value,ValueTable> {
 	}
 	
 	public Value visit(SExp s, ValueTable vt) {
-		interpretExp(s.exp_, vt);
-		return make_void();
+		return interpretExp(s.exp_, vt);
 	}
 	
 	public Value visit(CPP.Absyn.SInit p, ValueTable vt) {
 		Value v = interpretExp(p.exp_, vt);
-		System.out.println(v);
+		//System.out.println(v);
 		vt.addVar(p.id_, v);
 		return make_void();
 	}
 	
 	public Value visit(CPP.Absyn.SReturn p, ValueTable vt) {
 		Value v = interpretExp(p.exp_, vt);
-		System.out.println("return: " + v);
+		vt.returning = true;
 		return v;
 	}
 	public Value visit(CPP.Absyn.SWhile p, ValueTable vt) {
 		Value v = interpretExp(p.exp_, vt);
+		Value ret = make_void();
 		while ((boolean) v.getValue()) {
-			doStm(p.stm_, vt);
+			ret = doStm(p.stm_, vt);
 			v = interpretExp(p.exp_, vt);
 		}
-		return make_void();
+		return ret;
 	}
 	
 	public Value doStm(Stm stm, ValueTable vt) {
 		vt.pushScope();
-		stm.accept(this, vt);	
+		Value val = stm.accept(this, vt);	
 		vt.popScope();
-		return make_void();
+		return val;
 	}
 	
 	public Value visit(CPP.Absyn.SBlock p, ValueTable vt) {
 		vt.pushScope();
+		Value ret = make_void();
 		for (Stm s : p.liststm_) {
-			s.accept(this, vt);	
+			ret = s.accept(this, vt);	
 		}
 		vt.popScope();
-		return make_void();
+		return ret;
 	}
 	
 	public Value visit(CPP.Absyn.SIfElse p, ValueTable vt) {
-		boolean doIf = (boolean) interpretExp(p.exp_, vt).getValue(); 
+		boolean doIf = (boolean) interpretExp(p.exp_, vt).getValue();
+		
 		if (doIf) {
-			doStm(p.stm_1, vt);
+			return doStm(p.stm_1, vt);
 		}
 		else {
-			doStm(p.stm_2, vt);
+			return doStm(p.stm_2, vt);
 		}
-		return make_void();
 	}
 }

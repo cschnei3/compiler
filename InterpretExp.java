@@ -1,8 +1,11 @@
 import java.util.Scanner;
 import CPP.Absyn.*;
 import CPP.PrettyPrinter;
+import java.io.IOException;
+import java.io.BufferedInputStream;
 
 public class InterpretExp implements Exp.Visitor<Value, ValueTable> {
+	
 	public Value make_void() {
 		return new Value(new Type_void(), null);
 	}
@@ -21,6 +24,7 @@ public class InterpretExp implements Exp.Visitor<Value, ValueTable> {
     		}
     		
     		return new Value(new Type_void(), null);
+    		
     	}
     	if (id.equals("printDouble")) {
     		Value v = args.get(0).accept(this, vt);
@@ -28,33 +32,56 @@ public class InterpretExp implements Exp.Visitor<Value, ValueTable> {
     		return new Value(new Type_void(), null);
     	}
     	if (id.equals("readInt")) {
-    		Scanner key = new Scanner(System.in);
-    		return new Value(new Type_int(), key.nextInt());
+    		try {
+    			BufferedInputStream stdin = new BufferedInputStream(System.in);
+	    		Scanner key = new Scanner(stdin);
+	    		System.err.println("bytes in stream " + stdin.available());
+	    		int val = key.nextInt();
+//	    		key.close();
+	    		return new Value(new Type_int(), val);
+    		}
+    		catch (IOException e) {
+    			e.printStackTrace();
+    			System.err.println("ioerror");
+    			return null;
+    		}
+//    		Scanner key = new Scanner(System.in);
+//    		if (key.hasNextInt()) {
+//    			int val = key.nextInt();
+//    			key.close();
+//        		return new Value(new Type_int(), val);
+//    		}
+//    		throw new Error("Buffer is empty");
+    		
     	}
     	if (id.equals("readDouble")) {
     		Scanner key = new Scanner(System.in);
-    		return new Value(new Type_double(), key.nextDouble());
+    		double val = key.nextDouble();
+    		key.close();
+    		return new Value(new Type_double(), val);
     	}
     	
     	IntrFun fun = vt.getFun(id);
-    	vt.pushScope();
+    	vt.pushFunScope();
+    	
     	for (int i = 0; i < args.size(); i++) {
     		Exp e = args.get(i);
     		String name = fun.argNames.get(i);
     		Value argVal = e.accept(this, vt);
-    		System.err.println("setting arg " + name + " to " + argVal);
+    		//System.err.println("setting arg " + name + " to " + argVal);
     		vt.addVar(name, argVal);
     	}
-    	System.err.println("Calling fun " + id + " with " + args.size() + " args");
+    	//System.err.println("Calling fun " + id + " with " + args.size() + " args");
     	Value retVal = make_void();
     	for (Stm s : fun.stms) {
     		retVal = s.accept(new InterpretStm(), vt);
-    		if (retVal.getValue() != null) {
+    		if (vt.returning) {
+    			vt.returning = false;
     			break;
     		}
     	}
-    	vt.popScope();
-    	System.err.println("function " + id + " returning " + retVal.getValue());
+    	vt.popFunScope();
+    	//System.err.println("function " + id + " returning " + retVal.getValue());
 		return retVal;
     }
 	
@@ -124,9 +151,38 @@ public class InterpretExp implements Exp.Visitor<Value, ValueTable> {
     	return vt.lookupVar(p.id_);
     }
  
-    
-    public Value incr(String id, ValueTable vt) {
-		Value a = vt.lookupVar(id);
+    public Value visit(EPostIncr p, ValueTable vt) {
+		Value a = vt.lookupVar(p.id_);
+		Value newVal, retVal;
+		if (isInt(a)) {
+			retVal = new Value(a.type, (int)a.getValue());
+			newVal = new Value(a.type, (int)a.getValue() + (int) 1);
+		}
+		else {
+			retVal = new Value(a.type, (double) a.getValue());
+			newVal = new Value(a.type, (double) a.getValue() + (double) 1.0);
+		}
+		
+		vt.updateVar(p.id_, newVal);
+		return retVal;
+    }
+    public Value visit(EPostDecr p, ValueTable vt) {
+		Value a = vt.lookupVar(p.id_);
+		Value newVal, retVal;
+		if (isInt(a)) {
+			retVal = new Value(a.type, (int)a.getValue());
+			newVal = new Value(a.type, (int)a.getValue() - (int) 1);
+		}
+		else {
+			retVal = new Value(a.type, (double) a.getValue());
+			newVal = new Value(a.type, (double) a.getValue() - (double) 1.0);
+		}
+		
+		vt.updateVar(p.id_, newVal);
+		return retVal;
+    }
+    public Value visit(EPreIncr p, ValueTable vt){
+		Value a = vt.lookupVar(p.id_);
 		Value newVal;
 		if (isInt(a)) {
 			newVal = new Value(a.type, (int)a.getValue() + (int) 1);
@@ -135,34 +191,21 @@ public class InterpretExp implements Exp.Visitor<Value, ValueTable> {
 			newVal = new Value(a.type, (double) a.getValue() + (double) 1.0);
 		}
 		
-		vt.updateVar(id, newVal);
+		vt.updateVar(p.id_, newVal);
 		return newVal;
-	}
-		
-	public Value decr(String id, ValueTable vt) {
-		Value a = vt.lookupVar(id);
+    }
+    public Value visit(EPreDecr p, ValueTable vt){
+		Value a = vt.lookupVar(p.id_);
 		Value newVal;
 		if (isInt(a)) {
 			newVal = new Value(a.type, (int)a.getValue() - (int) 1);
 		}
 		else {
-			newVal = new Value(a.type, (double) a.getValue() + (double) 1.0);
+			newVal = new Value(a.type, (double) a.getValue() - (double) 1.0);
 		}
-		vt.updateVar(id, newVal);
+		
+		vt.updateVar(p.id_, newVal);
 		return newVal;
-	}
-    
-    public Value visit(EPostIncr p, ValueTable vt) {
-    	return incr(p.id_, vt);
-    }
-    public Value visit(EPostDecr p, ValueTable vt) {
-    	return decr(p.id_, vt);
-    }
-    public Value visit(EPreIncr p, ValueTable vt){
-    	return incr(p.id_, vt);
-    }
-    public Value visit(EPreDecr p, ValueTable vt){
-    	return decr(p.id_, vt);
     } 
     
     public Value visit(ELt p, ValueTable vt) {
@@ -194,7 +237,7 @@ public class InterpretExp implements Exp.Visitor<Value, ValueTable> {
 			return new Value(new Type_bool(), val_a > val_b);
 		}
 		else if (isInt(a)) {
-			System.err.println("comparing  " + a + " and " + b);
+			//System.err.println("comparing  " + a + " and " + b);
 			boolean val = ((int) a.getValue()) > ((int) b.getValue());
 			return new Value(new Type_bool(), val);
 		}
