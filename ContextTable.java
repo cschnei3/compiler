@@ -16,8 +16,8 @@ public class ContextTable{
     public void addVar(String str, int type_code){
         //something w incr max_var
     }
-    public addCode(String str){
+    public writeInstr(String str){
+        System.err.println(str);
         file.append(str + "\n");
     }
-
 }

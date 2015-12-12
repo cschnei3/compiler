@@ -3,13 +3,13 @@ JAVAC_FLAGS = -sourcepath .
 
 JAVA = java
 
-.PHONY: bnfc lab2 clean distclean vclean
+.PHONY: bnfc lab3 clean distclean vclean
 
-all: bnfc lab2
+all: bnfc lab3
 
-lab2:
-	${JAVAC} ${JAVAC_FLAGS}  Generator.java CodeGenerator.java InterpretExp.java IntrFun.java Value.java ValueTable.java TypeException.java Env.java TypeCode.java CheckProgram.java CheckStm.java InferExpType.java FunType.java InterpretStm.java lab2.java
-	chmod a+x lab2
+lab3:
+	${JAVAC} ${JAVAC_FLAGS}  TypeException.java Env.java ContextTable.java TypeCode.java CheckProgram.java CheckStm.java InferExpType.java FunType.java lab3.java Generator.java CodeGenerator.java 
+	chmod a+x lab3
 
 bnfc:
 	bnfc -java1.5 CPP.cf
