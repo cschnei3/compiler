@@ -3,7 +3,7 @@ import CPP.*;
 import CPP.Absyn.*;
 import java.io.*;
 
-public class lab2 {
+public class lab3 {
     public static void main(String args[]) {
         if (args.length != 1) {
             System.err.println("Usage: lab2 <SourceFile>");

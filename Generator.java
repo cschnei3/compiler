@@ -1,9 +1,9 @@
 import CPP.Absyn.*;
 
-public class Generator
-	Program.Visitor<ContextTable, ContextTable>, 
-	Def.Visitor<ContextTable, ContextTable>,
-	Arg.Visitor<String, ContextTable>,
+public class Generator implements
+	Program.Visitor<Object, Object>, 
+	Def.Visitor<Object, Object>,
+	Arg.Visitor<Object, Object>,
     Exp.Visitor<Object, Object> {
 
     public Object visit(CPP.Absyn.EMul p, Object arg) {
@@ -17,20 +17,17 @@ public class Generator
         return null ;
     }
 
-
     private void compileStm(Stm st, Object arg) {
-        st.accept(new StmCompiler(), arg);
+        st.accept(new Generator(), arg);
     }
 
-    private class StmCompiler implements Stm.Visitor<Object,Object> {
-        public Object visit(CPP.Absyn.SDecl p, Object arg) {
-            ContextTable.addVar(p.ident_, typeCode(p.type));
-            return null;
-        }
+    public Object visit(CPP.Absyn.SDecl p, Object arg) {
+        ct.addVar(p.ident_, typeCode(p.type));
+        return null;
     }
 
     private Object compileExp(Exp e, Object arg) {
-        return e.accept(new ExpCompiler(), arg);
+        return e.accept(new Generator(), arg);
     }
 }
 

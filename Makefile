@@ -8,7 +8,7 @@ JAVA = java
 all: bnfc lab3
 
 lab3:
-	${JAVAC} ${JAVAC_FLAGS}  TypeException.java Env.java ContextTable.java TypeCode.java CheckProgram.java CheckStm.java InferExpType.java FunType.java lab3.java Generator.java CodeGenerator.java 
+	${JAVAC} ${JAVAC_FLAGS}  TypeException.java Env.java ContextTable.java TypeCode.java CheckProgram.java CheckStm.java InferExpType.java FunType.java lab3.java CodeGenerator.java 
 	chmod a+x lab3
 
 bnfc:
