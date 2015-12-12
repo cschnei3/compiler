@@ -1,4 +1,5 @@
 import CPP.Absyn.*;
+import java.util.regex.Pattern;
 import java.util.LinkedList;
 
 public class CodeGenerator implements
@@ -9,26 +10,43 @@ public class CodeGenerator implements
     Exp.Visitor<Object, Object> {
 		
     ContextTable ct = new ContextTable();
-    
-    public void codeGenerator(Program p) {
+    String fileName; 
+
+    public void codeGenerator(Program p, String fileName) {
+        this.fileName = fileName;
 		p.accept(this, ct);
     }
-    
-    private void compileStm(Stm st, Object arg) {
-        st.accept(this, arg);
+   
+    private void stripFileName() {
+       fileName = fileName.split(Pattern.quote("."))[0]; 
     }
-    
+
+    private void writeBoilerplate() {
+        ct.writeInstr(".class public" + fileName);
+        ct.writeInstr(".super java/lang/Object");
+        ct.startMethod("<init>()V");
+        ct.writeInstr("aload_0");
+        ct.writeInstr("invokespecial java/lang/Object/<init>()V");
+        ct.writeInstr("return");
+        ct.endMethod();
+    }
+
     /* PROGRAM */
     public Object visit(PDefs p, Object unused) {
+        writeBoilerplate();
+
+        for (Def d : p.listdef_) {
+            d.accept(this, unused);
+        }
+
         return null;
     }
     
-    private Object compileExp(Exp e, Object arg) {
-        return e.accept(new CodeGenerator(), arg);
-    }
-    
     /* FUNCTIONS */
-    public Object visit(DFun p, Object unused) { return null; }
+    public Object visit(DFun p, Object unused) { 
+        ct.startMethod(p.id_ )                
+        return null; 
+    }
     
     /* ARGS */
     public Object visit(ADecl p, Object unused) { return null; }

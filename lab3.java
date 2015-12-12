@@ -12,12 +12,12 @@ public class lab3 {
 
         Yylex l = null;
         try {
+            String fileName = args[0];
             l = new Yylex(new FileReader(args[0]));
             parser p = new parser(l);
             CPP.Absyn.Program parse_tree = p.pProgram();
             new TypeChecker().typecheck(parse_tree);
-//            new Interpreter().interpret(parse_tree);
-            new CodeGenerator().codeGenerator(parse_tree);
+            new CodeGenerator().codeGenerator(parse_tree, fileName);
         } catch (TypeException e) {
             System.out.println("TYPE ERROR");
             System.err.println(e.toString());
