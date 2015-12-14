@@ -31,9 +31,7 @@ public class Env {
 	// built in functions
 	private void init_bifs() {
 		addFun("printInt", new Type_void(), one_arg_list(new Type_int()));
-		addFun("printDouble", new Type_void(), one_arg_list(new Type_double()));
 		addFun("readInt", new Type_int(), null);
-		addFun("readDouble", new Type_double(), null);
 	}
 	
 
