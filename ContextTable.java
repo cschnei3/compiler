@@ -6,7 +6,7 @@ import java.lang.StringBuilder;
 public class ContextTable {
     public LinkedList<HashMap<String, Integer>> vars;
     public int max_var;
-    public StringBuilder file;   
+    public StringBuilder file = new StringBuilder();   
     private boolean indented = false;
     private int label_count;
     public ContextTable() {

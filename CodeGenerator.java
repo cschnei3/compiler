@@ -1,6 +1,10 @@
 import CPP.Absyn.*;
 import java.util.regex.Pattern;
 import java.util.LinkedList;
+import java.io.File;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class CodeGenerator implements
 	Program.Visitor<Object, Object>, 
@@ -13,16 +17,34 @@ public class CodeGenerator implements
     String fileName; 
 
     public void codeGenerator(Program p, String fileName) {
+        System.err.println("Starting the code gen");
+        fileName = stripFileName(fileName);
         this.fileName = fileName;
+        System.err.println("Filename is " + fileName);
+
 		p.accept(this, ct);
+
+        System.err.println("Generation of the stringbuilder finished");
+
+        File file = new File(fileName + ".j");
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+            writer.write(ct.file.toString());
+            Runtime.getRuntime().exec("java -jar jasmin.jar " + fileName + ".j");
+            System.err.println("Made the jasmin file");
+            writer.close();
+        }
+        catch(IOException e) {
+            //if (writer != null) writer.close();
+        }
     }
    
-    private void stripFileName() {
-       fileName = fileName.split(Pattern.quote("."))[0]; 
+    private String stripFileName(String fileName) {
+       return fileName.split(Pattern.quote("."))[0]; 
     }
 
     private void writeBoilerplate() {
-        ct.writeInstr(".class public" + fileName);
+        ct.writeInstr(".class public " + fileName);
         ct.writeInstr(".super java/lang/Object");
         ct.startMethod("<init>()V", true);
         ct.writeInstr("aload_0");
@@ -34,7 +56,6 @@ public class CodeGenerator implements
     /* PROGRAM */
     public Object visit(PDefs p, Object unused) {
         writeBoilerplate();
-
         for (Def d : p.listdef_) {
             d.accept(this, unused);
         }
