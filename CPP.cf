@@ -21,7 +21,6 @@ terminator Stm "" ;
 ETrue.   Exp15  ::= "true" ;
 EFalse.  Exp15  ::= "false" ;
 EInt.    Exp15  ::= Integer ;
-EDouble. Exp15  ::= Double ;
 EId.     Exp15  ::= Id ;
 
 EApp.    Exp15  ::= Id "(" [Exp] ")" ;
@@ -50,7 +49,7 @@ coercions Exp 15 ;
 
 separator Exp "," ;
 
-rules Type   ::= "bool" | "int" | "double" | "void" ;
+rules Type   ::= "bool" | "int" | "void" ;
 
 token Id (letter (letter | digit | '_')*) ;
 
