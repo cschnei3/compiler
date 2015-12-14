@@ -8,7 +8,7 @@ public class ContextTable{
     public int max_var;
     public StringBuilder file;   
     private boolean indented = false;
-
+    private label_count = 0;
     public ContextTable() {
         vars = new LinkedList<HashMap<String, Integer>>();
         max_var = 0;
@@ -17,7 +17,7 @@ public class ContextTable{
     public void addVar(String str) {
         max_var++;
         for (int i = vars.size() -1; i >= 0; i--) {
-            if (vars.hasKey(str)) {
+            if (vars.get(i).hasKey(str)) {
                 System.err.println("err not sure if we care");
             }
             else {
@@ -25,6 +25,26 @@ public class ContextTable{
             }
         }
     }
+
+    public String getVar(String str){
+        for(i = vars.size() - 1; i >= 0; i--){
+            if(vars.get(i).hasKey(str)){
+                return (String)vars.get(i).get(str);
+            }
+        }
+        throw new Exception("couldnt find var in getVar");
+    }
+
+    public void pushScope(){
+        vars.addLast(new HashMap<String, Integer>);
+    }
+
+    public void popScope(){
+        if(vars.size() >0){
+            vars.removeLast();
+        }
+    }
+
     public void writeInstr(String str){
         System.err.println(str);
 
@@ -33,18 +53,32 @@ public class ContextTable{
         file.append(str + "\n");
     }
 
-    public void startMethod(String s) {
-        writeInstr(".method public " + s);
+    public void startLable(String str, boolean label){
+        if(label){
+            indented = false;
+            writeInstr(str + ":");
+            indented = true;
+       }
+    }
+
+
+    public void startMethod(String str) {
+        writeInstr(".method public " + str);
         indented = true;
     }
-    
-    public void startMethod(String s, boolean staticc) {
-        if (staticc) startMethod("static " + s);
+
+    public void startMethod(String str, boolean staticc) {
+        if (staticc) startMethod("static " + str);
         else startMethod(s);
     }
 
     public void endMethod() {
         indented = false;
         writeInstr(".end method");
+    }
+
+    public String newLabel(){
+        return "label_" + label_count;
+        label_count++;
     }
 }
