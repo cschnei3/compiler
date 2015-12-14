@@ -14,6 +14,7 @@ public class CodeGenerator implements
     Exp.Visitor<Object, Object> {
 		
     ContextTable ct = new ContextTable();
+    Env env = new Env();
     String fileName; 
 
     public void codeGenerator(Program p, String fileName) {
@@ -21,6 +22,8 @@ public class CodeGenerator implements
         fileName = stripFileName(fileName);
         this.fileName = fileName;
         System.err.println("Filename is " + fileName);
+        
+		this.env = p.accept(new CheckProgram(), env);
 
 		p.accept(this, ct);
 
@@ -46,9 +49,16 @@ public class CodeGenerator implements
     private void writeBoilerplate() {
         ct.writeInstr(".class public " + fileName);
         ct.writeInstr(".super java/lang/Object");
-        ct.startMethod("<init>()V", true);
+        ct.startNonStaticMethod("<init>()V");
         ct.writeInstr("aload_0");
-        ct.writeInstr("invokespecial java/lang/Object/<init>()V");
+        ct.writeInstr("invokenonvirtual java/lang/Object/<init>()V");
+        ct.writeInstr("return");
+        ct.endMethod();
+
+        ct.startMethod("main([Ljava/lang/String;)V");
+        ct.writeInstr(".limit locals 1");
+        ct.writeInstr("invokestatic " + fileName + "/main()I");
+        ct.writeInstr("pop");
         ct.writeInstr("return");
         ct.endMethod();
     }
@@ -68,7 +78,7 @@ public class CodeGenerator implements
             return  "I";
         }
         else if (typeCode == TypeCode.CBool) {
-            return  "B";
+            return  "Z";
         }
         else if (typeCode == TypeCode.CVoid) {
             return  "V";
@@ -82,33 +92,24 @@ public class CodeGenerator implements
     public Object visit(DFun p, Object unused) { 
         // Make the function signature
         ct.pushScope();
-        String argDescriptor = "(";
-
-        if (p.id_.equals("main")) {
-            argDescriptor = "([Ljava/lang/String;)V";
-        } 
-        else {
-            for (Arg a : p.listarg_) {
-                int typeCode = a.accept(this, unused);
-                argDescriptor += jasminType(typeCode);
-            }
-
-            argDescriptor += ")" + jasminType(p.type_.accept(new TypeCode(), null));
-        }
-
-        ct.startMethod(p.id_ + argDescriptor);               
+        String fun_sig = get_sig(p.id_);
+        
+        ct.startMethod(fun_sig);               
 
         // Set up the stack
 
-        ct.writeInstr(".limit stack " + p.liststm_.size());
+        ct.writeInstr(".limit stack 10");
         ct.writeInstr(".limit locals 100");
 
         for (Stm s : p.liststm_) {
             s.accept(this, unused);
         }
 
+        ct.writeInstr("iconst_0");
+        ct.writeInstr("ireturn");
         ct.endMethod();
         ct.popScope();
+
     
         return null; 
     }
@@ -138,8 +139,8 @@ public class CodeGenerator implements
 
         p.exp_.accept(this, unused);
         
-        ct.writeInstr("istore_" + address);
-        ct.writeInstr("iload_" + address);
+        ct.writeInstr("istore " + address);
+        //ct.writeInstr("iload " + address);
 
         return null; 
     }
@@ -204,13 +205,25 @@ public class CodeGenerator implements
     }
 
     public Object visit(EInt p, Object unused) { 
-        ct.writeInstr("iconst_" + p.integer_);
+        ct.writeInstr("bipush " + p.integer_);
         return null ;
     }
 
     public Object visit(EId p, Object unused) { 
-        ct.writeInstr("iload_" + ct.getVar(p.id_));
+        ct.writeInstr("iload " + ct.getVar(p.id_));
         return null ;
+    }
+
+    public String get_sig(String fun_id) {
+        String fun_sig = fileName + "/" + fun_id + "(";
+        FunType fun = env.signature.get(fun_id);
+
+        for(Type t : fun.args) {
+            fun_sig += jasminType(t.accept(new TypeCode(), null));
+        }
+
+        String retType = jasminType(fun.retType.accept(new TypeCode(), null));
+        return fun_sig + ")" + retType;
     }
 
     public Object visit(EApp p, Object unused) { 
@@ -220,7 +233,7 @@ public class CodeGenerator implements
             exp.accept(this, unused);
         }
         
-        ct.writeInstr("invokestatic " + fileName + "/" +  p.id_);
+        ct.writeInstr("invokestatic " + get_sig(p.id_));
         
         ct.popScope();
         return null ;
@@ -228,40 +241,44 @@ public class CodeGenerator implements
 
     public Object visit(EPostIncr p, Object unused) { 
         String var_id = ct.getVar(p.id_);
-        ct.writeInstr("iload_" + var_id);
-        ct.writeInstr("iload_" + var_id);
+        ct.writeInstr("iload " + var_id);
+        ct.writeInstr("iload " + var_id);
         ct.writeInstr("iconst_1");
         ct.writeInstr("iadd");
-        ct.writeInstr("istore_" + var_id);
+        ct.writeInstr("istore " + var_id);
+        ct.writeInstr("pop");
         return null;
     }
 
     public Object visit(EPostDecr p, Object unused){
         String var_id = ct.getVar(p.id_);
-        ct.writeInstr("iload_" + var_id);
-         ct.writeInstr("iload_" + var_id);
+        ct.writeInstr("iload " + var_id);
+         ct.writeInstr("iload " + var_id);
         ct.writeInstr("iconst_1");
         ct.writeInstr("isub");
-        ct.writeInstr("istore_" + var_id);
+        ct.writeInstr("istore " + var_id);
+        ct.writeInstr("pop");
         return null;
     }
  
     public Object visit(EPreIncr p, Object unused) { 
         String var_id = ct.getVar(p.id_);
-        ct.writeInstr("iload_" + var_id);
+        ct.writeInstr("iload " + var_id);
         ct.writeInstr("iconst_1");
         ct.writeInstr("iadd");
-        ct.writeInstr("istore_" + var_id);
-        ct.writeInstr("iload_" + var_id);
+        ct.writeInstr("istore " + var_id);
+        ct.writeInstr("iload " + var_id);
+        ct.writeInstr("pop");
         return null;
     }
      public Object visit(EPreDecr p, Object unused) {
         String var_id = ct.getVar(p.id_);
-        ct.writeInstr("iload_" + var_id);
+        ct.writeInstr("iload " + var_id);
         ct.writeInstr("iconst_1");
         ct.writeInstr("iadd");
-        ct.writeInstr("istore_" + var_id);
-        ct.writeInstr("iload_" + var_id);
+        ct.writeInstr("istore " + var_id);
+        ct.writeInstr("iload " + var_id);
+        ct.writeInstr("pop");
         return null;
     }
 
@@ -383,8 +400,9 @@ public class CodeGenerator implements
 
         String address = ct.addVar(p.id_);
 
-        ct.writeInstr("istore_" + address);
-        ct.writeInstr("iload_" + address);
+        ct.writeInstr("istore " + address);
+        ct.writeInstr("iload " + address);
+        ct.writeInstr("pop");
         return null ;
     }
 }

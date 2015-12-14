@@ -9,9 +9,10 @@ public class ContextTable {
     public StringBuilder file = new StringBuilder();   
     private boolean indented = false;
     private int label_count;
+    public HashMap<String, String> param_types = new HashMap<String, String>();
     public ContextTable() {
         vars = new LinkedList<HashMap<String, Integer>>();
-        max_var = 0;
+        max_var = 1;
         label_count = 0;
     }
 
@@ -57,13 +58,13 @@ public class ContextTable {
 
 
     public void startMethod(String str) {
-        writeInstr(".method public " + str);
+        writeInstr(".method public static " + str);
         indented = true;
     }
 
-    public void startMethod(String str, boolean staticc) {
-        if (staticc) startMethod("static " + str);
-        else startMethod(str);
+    public void startNonStaticMethod(String str) {
+        writeInstr(".method public " + str);
+        indented = true; 
     }
 
     public void endMethod() {
