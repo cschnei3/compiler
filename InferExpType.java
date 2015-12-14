@@ -18,10 +18,6 @@ public class InferExpType implements Exp.Visitor<Type,Env> {
 				TypeCode.typeCode(t2) == TypeCode.CInt) {
 				return new Type_int();
 			}
-			else if (TypeCode.typeCode(t1) == TypeCode.CDouble &&
-					 TypeCode.typeCode(t2) == TypeCode.CDouble) {
-				return new Type_double();
-			}
 			else {
 				throw new TypeException(errMsg);
 			}
@@ -33,10 +29,6 @@ public class InferExpType implements Exp.Visitor<Type,Env> {
 			
 			if (TypeCode.typeCode(t1) == TypeCode.CInt &&
 				TypeCode.typeCode(t2) == TypeCode.CInt) {
-				return new Type_bool();
-			}
-			else if (TypeCode.typeCode(t1) == TypeCode.CDouble &&
-					 TypeCode.typeCode(t2) == TypeCode.CDouble) {
 				return new Type_bool();
 			}
 			else if (TypeCode.typeCode(t1) == TypeCode.CBool &&
@@ -72,9 +64,6 @@ public class InferExpType implements Exp.Visitor<Type,Env> {
 	    public Type visit(EInt p, Env env){ 
 	    	return new Type_int();
 	    }
-	    public Type visit(EDouble p, Env env){ 
-	    	return new Type_double();
-	    }
 	    public Type visit(EId p, Env env){
 	    	// can return null if the var isn't there
 	    	Type t = env.lookupVar(p.id_); 
@@ -96,7 +85,7 @@ public class InferExpType implements Exp.Visitor<Type,Env> {
 	    	Type t = env.lookupVar(id);
 	    	int tc = TypeCode.typeCode(t);
 	    	
-	    	if (tc != TypeCode.CInt && tc != TypeCode.CDouble) {
+	    	if (tc != TypeCode.CInt) {
 	    		throw new TypeException("Type must be int or double for increment/decrement on id: " + id);
 	    	}
 	    	

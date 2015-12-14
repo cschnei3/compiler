@@ -1,3 +1,4 @@
 .metadata/
 failTests/
 *.swp
+tests/

@@ -3,40 +3,36 @@ import java.util.LinkedList;
 import java.util.HashMap;
 import java.lang.StringBuilder;
 
-public class ContextTable{
+public class ContextTable {
     public LinkedList<HashMap<String, Integer>> vars;
     public int max_var;
     public StringBuilder file;   
     private boolean indented = false;
-    private label_count = 0;
+    private int label_count;
     public ContextTable() {
         vars = new LinkedList<HashMap<String, Integer>>();
         max_var = 0;
+        label_count = 0;
     }
 
-    public void addVar(String str) {
+    public String addVar(String str) {
         max_var++;
-        for (int i = vars.size() -1; i >= 0; i--) {
-            if (vars.get(i).hasKey(str)) {
-                System.err.println("err not sure if we care");
-            }
-            else {
-                vars.put(str, max_var);
-            }
-        }
+        vars.getLast().put(str, Integer.valueOf(max_var));
+        return Integer.valueOf(max_var).toString();
     }
 
-    public String getVar(String str){
-        for(i = vars.size() - 1; i >= 0; i--){
-            if(vars.get(i).hasKey(str)){
-                return (String)vars.get(i).get(str);
+    public String getVar(String str) {
+        for(int i = vars.size() - 1; i >= 0; i--){
+            if(vars.get(i).containsKey(str)){
+                return Integer.toString(vars.get(i).get(str));
             }
         }
-        throw new Exception("couldnt find var in getVar");
+        System.err.println("couldnt find var in getVar");
+        return "";
     }
 
     public void pushScope(){
-        vars.addLast(new HashMap<String, Integer>);
+        vars.addLast(new HashMap<String, Integer>());
     }
 
     public void popScope(){
@@ -53,12 +49,10 @@ public class ContextTable{
         file.append(str + "\n");
     }
 
-    public void startLable(String str, boolean label){
-        if(label){
-            indented = false;
-            writeInstr(str + ":");
-            indented = true;
-       }
+    public void startLabel(String str){
+        indented = false;
+        writeInstr(str + ":");
+        indented = true;
     }
 
 
@@ -69,7 +63,7 @@ public class ContextTable{
 
     public void startMethod(String str, boolean staticc) {
         if (staticc) startMethod("static " + str);
-        else startMethod(s);
+        else startMethod(str);
     }
 
     public void endMethod() {
@@ -78,7 +72,7 @@ public class ContextTable{
     }
 
     public String newLabel(){
-        return "label_" + label_count;
         label_count++;
+        return "label_" + label_count;
     }
 }

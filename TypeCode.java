@@ -4,7 +4,6 @@ public class TypeCode implements Type.Visitor<Integer, Env> {
 	// pseudo enum
 	public static final Integer 
 			CInt = Integer.valueOf(1), 
-			CDouble = Integer.valueOf(0), 
 			CBool = Integer.valueOf(3), 
 			CVoid = Integer.valueOf(4);
 	
@@ -14,8 +13,6 @@ public class TypeCode implements Type.Visitor<Integer, Env> {
 		switch(x) {
 			case 1:
 				return "Int";
-			case 0:
-				return "Double";
 			case 3:
 				return "Bool";
 			case 4:
@@ -35,10 +32,6 @@ public class TypeCode implements Type.Visitor<Integer, Env> {
 	
 	public Integer visit(Type_int p, Env env) {
 		return CInt;
-	}
-	
-	public Integer visit(Type_double p, Env env) {
-		return CDouble;
 	}
 	
 	public Integer visit(Type_void p, Env env) {
