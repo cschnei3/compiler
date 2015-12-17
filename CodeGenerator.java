@@ -15,13 +15,14 @@ public class CodeGenerator implements
 		
     ContextTable ct = new ContextTable();
     Env env = new Env();
-    String fileName; 
+    String file_name; 
 
-    public void codeGenerator(Program p, String fileName) {
+    public void codeGenerator(Program p, String file_name) {
         System.err.println("Starting the code gen");
-        fileName = stripFileName(fileName);
-        this.fileName = fileName;
-        System.err.println("Filename is " + fileName);
+        String full_path = stripExt(file_name);
+        file_name = stripFileName(file_name);
+        this.file_name = file_name;
+        System.err.println("Filename is " + file_name);
         
 		this.env = p.accept(new CheckProgram(), env);
 
@@ -29,11 +30,11 @@ public class CodeGenerator implements
 
         System.err.println("Generation of the stringbuilder finished");
 
-        File file = new File(fileName + ".j");
+        File file = new File(full_path + ".j");
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(file));
             writer.write(ct.file.toString());
-            Runtime.getRuntime().exec("java -jar jasmin.jar " + fileName + ".j");
+            Runtime.getRuntime().exec("java -jar jasmin.jar " + file_name + ".j");
             System.err.println("Made the jasmin file");
             writer.close();
         }
@@ -41,13 +42,19 @@ public class CodeGenerator implements
             //if (writer != null) writer.close();
         }
     }
+    
+    private String stripExt(String f_name) {
+        return f_name.split(Pattern.quote("."))[0]; 
+    }
    
-    private String stripFileName(String fileName) {
-       return fileName.split(Pattern.quote("."))[0]; 
+    private String stripFileName(String f_name) {
+        String without_ext = stripExt(f_name); 
+        String[] split_path = without_ext.split(Pattern.quote("/"));
+        return split_path[split_path.length - 1]; 
     }
 
     private void writeBoilerplate() {
-        ct.writeInstr(".class public " + fileName);
+        ct.writeInstr(".class public " + file_name);
         ct.writeInstr(".super java/lang/Object");
         ct.startNonStaticMethod("<init>()V");
         ct.writeInstr("aload_0");
@@ -57,7 +64,7 @@ public class CodeGenerator implements
 
         ct.startMethod("main([Ljava/lang/String;)V");
         ct.writeInstr(".limit locals 1");
-        ct.writeInstr("invokestatic " + fileName + "/main()I");
+        ct.writeInstr("invokestatic " + file_name + "/main()I");
         ct.writeInstr("pop");
         ct.writeInstr("return");
         ct.endMethod();
@@ -215,7 +222,7 @@ public class CodeGenerator implements
     }
 
     public String get_sig(String fun_id) {
-        String fun_sig = fileName + "/" + fun_id + "(";
+        String fun_sig = fun_id + "(";
         FunType fun = env.signature.get(fun_id);
 
         for(Type t : fun.args) {
