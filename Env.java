@@ -8,11 +8,22 @@ public class Env {
 	
 	
     String function;
+    FunType cur_fun;
+    public int local_vars = 0, stack_size = 0, max_stack = 0;
 
 	public Env() {
 		pushScope();
 		init_bifs();
 	}
+
+    public void pushStack() {
+        cur_fun.stack_size++;
+        if (cur_fun.stack_size > cur_fun.max_stack) cur_fun.max_stack = cur_fun.stack_size;
+    }
+
+    public void popStack() {
+        cur_fun.stack_size--;
+    }
 	
 	public String toString() {
 		String ret = "";
@@ -49,6 +60,7 @@ public class Env {
 		
 		if(funName != null){
             function = funName;
+            cur_fun = lookupFun(function);
         }
 		
         pushScope();

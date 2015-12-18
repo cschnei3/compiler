@@ -9,6 +9,8 @@ public class InferExpType implements Exp.Visitor<Type,Env> {
 		public Type arithmetic(Exp e1, Exp e2, Env env, String errMsg) {
 			Type t1 = e1.accept(this, env);
 			Type t2 = e2.accept(this, env);
+            
+            env.popStack();
 			
 //			System.out.println(PrettyPrinter.print(e1));
 //			System.out.println(PrettyPrinter.print(e2));
@@ -26,6 +28,8 @@ public class InferExpType implements Exp.Visitor<Type,Env> {
 		public Type comparison(Exp e1, Exp e2, Env env, String errMsg) {
 			Type t1 = e1.accept(this, env);
 			Type t2 = e2.accept(this, env);
+            
+            env.popStack();
 			
 			if (TypeCode.typeCode(t1) == TypeCode.CInt &&
 				TypeCode.typeCode(t2) == TypeCode.CInt) {
@@ -43,7 +47,10 @@ public class InferExpType implements Exp.Visitor<Type,Env> {
 		public Type logical(Exp e1, Exp e2, Env env, String errMsg) {
 			Type t1 = e1.accept(this, env);
 			Type t2 = e2.accept(this, env);
-			if (TypeCode.typeCode(t1) == TypeCode.CBool &&
+            
+            env.popStack();
+			
+            if (TypeCode.typeCode(t1) == TypeCode.CBool &&
 					TypeCode.typeCode(t2) == TypeCode.CBool) {
 					return new Type_bool();
 			}
@@ -56,15 +63,19 @@ public class InferExpType implements Exp.Visitor<Type,Env> {
 			return arithmetic(p.exp_1, p.exp_2, env, "Operands to * must be int or double.");
 		}
 	    public Type visit(ETrue p, Env env) {
+            env.pushStack();
 	    	return new Type_bool();
 	    }
 	    public Type visit(EFalse p, Env env){ 
+            env.pushStack();
 	    	return new Type_bool();
 	    }
 	    public Type visit(EInt p, Env env){ 
+            env.pushStack();
 	    	return new Type_int();
 	    }
 	    public Type visit(EId p, Env env){
+            env.pushStack();
 	    	// can return null if the var isn't there
 	    	Type t = env.lookupVar(p.id_); 
 	    	return t;
@@ -77,6 +88,8 @@ public class InferExpType implements Exp.Visitor<Type,Env> {
 	    		argList.add(e.accept(this, env));
 	    	}
 	    	env.checkFunArgs(p.id_, argList);
+            
+            env.pushStack();
 	    	
 	    	return t;
 	    }
@@ -84,6 +97,8 @@ public class InferExpType implements Exp.Visitor<Type,Env> {
 	    public Type intDoubleExp(String id, Env env) {
 	    	Type t = env.lookupVar(id);
 	    	int tc = TypeCode.typeCode(t);
+            
+            env.pushStack();
 	    	
 	    	if (tc != TypeCode.CInt) {
 	    		throw new TypeException("Type must be int or double for increment/decrement on id: " + id);
@@ -140,6 +155,8 @@ public class InferExpType implements Exp.Visitor<Type,Env> {
 	    public Type visit(EAss p, Env env){
 	    	Type expType = p.exp_.accept(this, env);
 	    	Type idType = env.lookupVar(p.id_);
+            
+            env.pushStack();
 	    	
 	    	if (TypeCode.typeCode(expType) != TypeCode.typeCode(idType)) {
 //	    		System.out.println("EAss error: id type code: " + 

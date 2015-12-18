@@ -35,21 +35,24 @@ public class CheckStm implements
 		return env;
 	}
     
-    public Env visit(CPP.Absyn.ADecl p, Env e) {
-        e.updateVar(p.id_, p.type_);
-        return e;
+    public Env visit(CPP.Absyn.ADecl p, Env env) {
+        env.cur_fun.local_vars += 1;
+        env.updateVar(p.id_, p.type_);
+        return env;
     }
 
 	public Env visit(SDecls p, Env env) {
 		for (String id : p.listid_) {
+            env.cur_fun.local_vars += 1;
 			env.updateVar(id, p.type_) ;
 		}
 		return env ;
 	}
 
 	public Env visit(SExp s, Env env) {
-       s.exp_.accept(new InferExpType(), env);
-		return env ;
+        s.exp_.accept(new InferExpType(), env);
+        env.popStack();
+	    return env ;
 	}
 	
 	public int tc(Type t) {
@@ -59,9 +62,13 @@ public class CheckStm implements
     public Env visit(CPP.Absyn.SInit p, Env env) {
     	Type expType = inferExp(p.exp_, env);
     	Type varType = p.type_;
+
+        env.cur_fun.local_vars += 1;
+
         if(tc(expType) != tc(varType)){
             throw new TypeException("Assignment must match initilization");
-        }
+        }		
+        env.popStack();
 		env.updateVar(p.id_, p.type_);
         return env;
 	}
@@ -75,6 +82,7 @@ public class CheckStm implements
         if (tc(retType) != tc(expType)){
             throw new TypeException("Return type is wrong");
         }
+        env.popStack();
         return env;
     }
     public Env visit(CPP.Absyn.SWhile p, Env env) {

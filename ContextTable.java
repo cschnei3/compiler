@@ -9,17 +9,18 @@ public class ContextTable {
     public StringBuilder file = new StringBuilder();   
     private boolean indented = false;
     private int label_count;
-    public HashMap<String, String> param_types = new HashMap<String, String>();
+    
     public ContextTable() {
         vars = new LinkedList<HashMap<String, Integer>>();
         max_var = 1;
         label_count = 0;
+
     }
 
     public String addVar(String str) {
-        max_var++;
         vars.getLast().put(str, Integer.valueOf(max_var));
-        return Integer.valueOf(max_var).toString();
+        // post increment returns original value :)
+        return Integer.valueOf(max_var++).toString();
     }
 
     public String getVar(String str) {
@@ -43,7 +44,7 @@ public class ContextTable {
     }
 
     public void writeInstr(String str){
-        System.err.println(str);
+        //System.err.println(str);
 
         if (indented) str = "\t" + str;
 
@@ -58,6 +59,7 @@ public class ContextTable {
 
 
     public void startMethod(String str) {
+        max_var = 0;
         writeInstr(".method public static " + str);
         indented = true;
     }

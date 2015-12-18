@@ -16,7 +16,8 @@ public class lab3 {
             l = new Yylex(new FileReader(args[0]));
             parser p = new parser(l);
             CPP.Absyn.Program parse_tree = p.pProgram();
-            new TypeChecker().typecheck(parse_tree);
+// type checker is run in the code gen
+//            new TypeChecker().typecheck(parse_tree);
             new CodeGenerator().codeGenerator(parse_tree, fileName);
         } catch (TypeException e) {
             System.out.println("TYPE ERROR");

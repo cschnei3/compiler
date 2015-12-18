@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.Runtime;
 
 public class CodeGenerator implements
 	Program.Visitor<Object, Object>, 
@@ -18,29 +19,28 @@ public class CodeGenerator implements
     String file_name; 
 
     public void codeGenerator(Program p, String file_name) {
-        System.err.println("Starting the code gen");
         String full_path = stripExt(file_name);
         file_name = stripFileName(file_name);
         this.file_name = file_name;
-        System.err.println("Filename is " + file_name);
         
 		this.env = p.accept(new CheckProgram(), env);
+        p.accept(new CheckStm(), env);
 
 		p.accept(this, ct);
-
-        System.err.println("Generation of the stringbuilder finished");
 
         File file = new File(full_path + ".j");
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(file));
             writer.write(ct.file.toString());
-            Runtime.getRuntime().exec("java -jar jasmin.jar " + file_name + ".j");
-            System.err.println("Made the jasmin file");
+            String[] split_path = full_path.split(Pattern.quote("/"));
+            String path_to_dir = "./";
+            for (int i = 0; i < split_path.length - 1; i++) {
+               path_to_dir += split_path[i] + "/"; 
+            }
+            Runtime.getRuntime().exec("java -jar jasmin.jar " + full_path + ".j");
             writer.close();
         }
-        catch(IOException e) {
-            //if (writer != null) writer.close();
-        }
+        catch(IOException e) {}
     }
     
     private String stripExt(String f_name) {
@@ -104,9 +104,13 @@ public class CodeGenerator implements
         ct.startMethod(fun_sig);               
 
         // Set up the stack
-
-        ct.writeInstr(".limit stack 10");
-        ct.writeInstr(".limit locals 100");
+        FunType p_fun = env.lookupFun(p.id_);
+        ct.writeInstr(".limit stack " + p_fun.max_stack);
+        ct.writeInstr(".limit locals " + p_fun.local_vars);
+       
+        for (Arg a : p.listarg_){
+            a.accept(this, unused);
+        }
 
         for (Stm s : p.liststm_) {
             s.accept(this, unused);
@@ -123,6 +127,7 @@ public class CodeGenerator implements
     
     /* ARGS */
     public Integer visit(ADecl p, Object unused) { 
+        //ct.writeInstr("iload " + ct.addVar(p.id_));
         ct.addVar(p.id_);
         return p.type_.accept(new TypeCode(), null); 
     }
@@ -130,6 +135,7 @@ public class CodeGenerator implements
     /* STATEMENTS */
     public Object visit(SExp p, Object unused) { 
         p.exp_.accept(this, unused);
+        ct.writeInstr("pop");
         return null; 
     }
 
@@ -166,7 +172,7 @@ public class CodeGenerator implements
 
         ct.startLabel(start_label);
         p.exp_.accept(this, unused);
-        ct.writeInstr("ifne " +  end_label);
+        ct.writeInstr("ifeq " +  end_label);
         p.stm_.accept(this, unused);
         ct.writeInstr("goto " + start_label);
         ct.startLabel(end_label);
@@ -185,17 +191,14 @@ public class CodeGenerator implements
     }
 
     public Object visit(SIfElse p, Object unused) { 
-        ct.pushScope();
-
-       String if_label = "if_" + ct.newLabel();
+       String else_label = "else_" + ct.newLabel();
         String end_label = "end_" + ct.newLabel();
-
         p.exp_.accept(this, unused);
-        ct.writeInstr("ifeq " + if_label);
-        p.stm_2.accept(this, unused);
-        ct.writeInstr("goto " + end_label);
-        ct.startLabel(if_label); 
+        ct.writeInstr("ifeq " + else_label);
         p.stm_1.accept(this, unused);
+        ct.writeInstr("goto " + end_label);
+        ct.startLabel(else_label); 
+        p.stm_2.accept(this, unused);
         ct.startLabel(end_label);
         return null;
     }
@@ -212,7 +215,7 @@ public class CodeGenerator implements
     }
 
     public Object visit(EInt p, Object unused) { 
-        ct.writeInstr("bipush " + p.integer_);
+        ct.writeInstr("ldc " + p.integer_);
         return null ;
     }
 
@@ -222,6 +225,7 @@ public class CodeGenerator implements
     }
 
     public String get_sig(String fun_id) {
+
         String fun_sig = fun_id + "(";
         FunType fun = env.signature.get(fun_id);
 
@@ -236,11 +240,23 @@ public class CodeGenerator implements
     public Object visit(EApp p, Object unused) { 
         ct.pushScope();
         
-        for(Exp exp : p.listexp_){
+        for(Exp exp : p.listexp_) {
             exp.accept(this, unused);
         }
+
+        String class_name = "";
+
+        if (p.id_.equals("readInt") || p.id_.equals("printInt")) {
+            class_name = "Runtime/";
+        }
+        else {
+            class_name = file_name + "/";
+        }
         
-        ct.writeInstr("invokestatic " + get_sig(p.id_));
+        ct.writeInstr("invokestatic " + class_name + get_sig(p.id_));
+        
+        int ret_type_code = env.signature.get(p.id_).retType.accept(new TypeCode(), null);
+        if (ret_type_code == TypeCode.CVoid) ct.writeInstr("iconst_0"); 
         
         ct.popScope();
         return null ;
@@ -249,22 +265,22 @@ public class CodeGenerator implements
     public Object visit(EPostIncr p, Object unused) { 
         String var_id = ct.getVar(p.id_);
         ct.writeInstr("iload " + var_id);
-        ct.writeInstr("iload " + var_id);
+        ct.writeInstr("dup");
         ct.writeInstr("iconst_1");
         ct.writeInstr("iadd");
         ct.writeInstr("istore " + var_id);
-        ct.writeInstr("pop");
+        //ct.writeInstr("pop");
         return null;
     }
 
     public Object visit(EPostDecr p, Object unused){
         String var_id = ct.getVar(p.id_);
         ct.writeInstr("iload " + var_id);
-         ct.writeInstr("iload " + var_id);
+         ct.writeInstr("dup");
         ct.writeInstr("iconst_1");
         ct.writeInstr("isub");
         ct.writeInstr("istore " + var_id);
-        ct.writeInstr("pop");
+        //ct.writeInstr("pop");
         return null;
     }
  
@@ -273,9 +289,9 @@ public class CodeGenerator implements
         ct.writeInstr("iload " + var_id);
         ct.writeInstr("iconst_1");
         ct.writeInstr("iadd");
+        ct.writeInstr("dup");
         ct.writeInstr("istore " + var_id);
-        ct.writeInstr("iload " + var_id);
-        ct.writeInstr("pop");
+        //ct.writeInstr("pop");
         return null;
     }
      public Object visit(EPreDecr p, Object unused) {
@@ -283,9 +299,9 @@ public class CodeGenerator implements
         ct.writeInstr("iload " + var_id);
         ct.writeInstr("iconst_1");
         ct.writeInstr("iadd");
+        ct.writeInstr("dup");
         ct.writeInstr("istore " + var_id);
-        ct.writeInstr("iload " + var_id);
-        ct.writeInstr("pop");
+        //ct.writeInstr("pop");
         return null;
     }
 
@@ -319,12 +335,12 @@ public class CodeGenerator implements
 
     public void comparison(String instr, Exp e1, Exp e2) {
         String true_label = "true_" + ct.newLabel();
-        ct.writeInstr("bipush 1");
+        ct.writeInstr("iconst_1");
         e1.accept(this, null);
         e2.accept(this, null);
         ct.writeInstr(instr + " " + true_label);
         ct.writeInstr("pop");
-        ct.writeInstr("bipush 0");
+        ct.writeInstr("iconst_0");
         ct.startLabel(true_label);
     }
 
@@ -334,46 +350,46 @@ public class CodeGenerator implements
     }
 
     public Object visit(EGt p, Object unused) { 
-        comparison("if_cmpgt", p.exp_1, p.exp_2);
+        comparison("if_icmpgt", p.exp_1, p.exp_2);
         return null; 
     }
     public Object visit(ELtEq p, Object unused) { 
-        comparison("if_cmple", p.exp_1, p.exp_2);
+        comparison("if_icmple", p.exp_1, p.exp_2);
         return null; 
     }
 
     public Object visit(EGtEq p, Object unused) { 
-        comparison("if_cmpge", p.exp_1, p.exp_2);
+        comparison("if_icmpge", p.exp_1, p.exp_2);
         return null; 
     }
 
     public Object visit(EEq p, Object unused) { 
-        comparison("if_cmpeq", p.exp_1, p.exp_2);
+        comparison("if_icmpeq", p.exp_1, p.exp_2);
         return null; 
     }
 
     public Object visit(ENEq p, Object unused) { 
-        comparison("if_cmpne", p.exp_1, p.exp_2);
+        comparison("if_icmpne", p.exp_1, p.exp_2);
         return null; 
     }
 
     public Object visit(EAnd p, Object unused) { 
         String end_label = "end_" + ct.newLabel();
         // default value to be left on the stack
-        ct.writeInstr("bipush 0");
+        ct.writeInstr("iconst_0");
         
         p.exp_1.accept(this, unused);
-        ct.writeInstr("bipush 1");
+        ct.writeInstr("iconst_1");
         // if not equal go to end label with 0 on stack
-        ct.writeInstr("if_cmpne " + end_label);
+        ct.writeInstr("if_icmpne " + end_label);
 
         p.exp_2.accept(this, unused);
-        ct.writeInstr("bipush 1");
+        ct.writeInstr("iconst_1");
         // same as above with 2nd expression
-        ct.writeInstr("if_cmpne " + end_label);
+        ct.writeInstr("if_icmpne " + end_label);
         // both values have compared to true, so replace return value with 1
         ct.writeInstr("pop");
-        ct.writeInstr("bipush 1");
+        ct.writeInstr("iconst_1");
         
         ct.startLabel(end_label);
         return null; 
@@ -382,20 +398,20 @@ public class CodeGenerator implements
     public Object visit(EOr p, Object unused) { 
         String end_label = "end_" + ct.newLabel();
         // default value to be left on the stack
-        ct.writeInstr("bipush 1");
+        ct.writeInstr("iconst_1");
         
         p.exp_1.accept(this, unused);
-        ct.writeInstr("bipush 1");
+        ct.writeInstr("iconst_1");
         // if equal go to end label with 1 on stack
-        ct.writeInstr("if_cmpeq " + end_label);
+        ct.writeInstr("if_icmpeq " + end_label);
 
         p.exp_2.accept(this, unused);
-        ct.writeInstr("bipush 1");
+        ct.writeInstr("iconst_1");
         // same as above with 2nd expression
-        ct.writeInstr("if_cmpeq " + end_label);
+        ct.writeInstr("if_icmpeq " + end_label);
         // both values have compared to 0, so replace return value with 0
         ct.writeInstr("pop");
-        ct.writeInstr("bipush 0");
+        ct.writeInstr("iconst_0");
         
         ct.startLabel(end_label);
         return null; 
@@ -405,11 +421,11 @@ public class CodeGenerator implements
         // accept pushes the value onto the stack
         p.exp_.accept(this, unused);
 
-        String address = ct.addVar(p.id_);
-
+        String address = ct.getVar(p.id_);
+        
+        ct.writeInstr("dup");
         ct.writeInstr("istore " + address);
-        ct.writeInstr("iload " + address);
-        ct.writeInstr("pop");
+        //ct.writeInstr("pop");
         return null ;
     }
 }
